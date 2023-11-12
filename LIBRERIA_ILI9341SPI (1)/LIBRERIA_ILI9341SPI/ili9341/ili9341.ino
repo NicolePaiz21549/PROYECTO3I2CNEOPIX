@@ -114,7 +114,7 @@ void loop() {
   
   if (Serial2.available()){ //Utilizar Serial2 para comunicarse con el ESP32
     receivedvaluesensor=Serial2.parseFloat();
-    Serial.print("BPM:");
+    Serial.print("BPM:"); //Hay un delay de entre 10 a 15 segundos para recibir el valor del sensor actual por el FFT
     Serial.println(receivedvaluesensor);
   }
     //Impresión de temperatura 
