@@ -24,7 +24,7 @@ void setup()
     while (1);
   }
   Serial.println("Coloca tu dedo índice sobre el sensor con presión constante.");
-  byte ledBrightness = 0x7F; //Brillo al máximo donde las opciones son: 0=OFF
+  byte ledBrightness = 0x7F; //Brillo al máximo 
   byte sampleAverage = 4;
   byte ledMode = 2; //Donde las opciones son: 1 = ROJO, 2 = ROJO + IR, 3 = ROJO + IR + VERDE
   byte sampleRate = 100; 
