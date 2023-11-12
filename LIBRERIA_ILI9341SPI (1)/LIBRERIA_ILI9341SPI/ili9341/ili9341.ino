@@ -6,7 +6,7 @@
 //***************************************************************************************************************************************
 
 //Librerías
-/*#include <SPI.h>
+#include <SPI.h>
 #include <SD.h>
 
 #include <stdint.h>
@@ -26,26 +26,28 @@
 
 #include "bitmaps.h"
 #include "font.h"
-#include "lcd_registers.h"*/
+#include "lcd_registers.h"
 //*********************************************************************************** 
 
 //Definición de pines
-/*SPIO en 0
-MOSI a PA_5
-MISO a PA_4
-SCK a PA_2
+/* Colocación de pines en la pantalla TFT ili9341
+SPIO en 0
+MOSI a PA_5 (Tanto general como para SD)
+MISO a PA_4 (Tanto general como para SD)
+SCK a PA_2 (Tanto general como para SD)
 CS a PA_3 
 SD_CS a PB_3*/
 
-/*#define LCD_RST PD_0
+//Para pantalla TFT ili9341 
+#define LCD_RST PD_0
 #define LCD_DC PD_1
-#define LCD_CS PA_3*/
+#define LCD_CS PA_3
 
 #define BSENSE PF_4 //Botón para preguntar el valor del sensor al ESP32 - SW1
 #define BSD PF_0 //Botón para guardar el valor de la medición  del sensor en el SD - SW2
 #define RXp2 PD6
 #define TXp2 PD7
-//#define CS_PIN PB_3 //aka pin 12 para el chip select del SD
+#define CS_PIN PB_3 //aka pin 12 para el chip select del SD
 //***************************************************************************************************************************************
 
 //Variables globales 
@@ -56,7 +58,7 @@ unsigned long debounceDelay=50;
 //***********************************************************************************
 
 //Prototipos de funciones
-/*void LCD_Init(void);
+void LCD_Init(void);
 void LCD_CMD(uint8_t cmd);
 void LCD_DATA(uint8_t data);
 void SetWindows(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
@@ -68,12 +70,12 @@ void FillRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, un
 void LCD_Print(String text, int x, int y, int fontSize, int color, int background);
 
 void LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned char bitmap[]);
-void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);*/
+void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
 //***************************************************************************************************************************************
 
 //Configuración
 void setup() {
-  //SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
+  SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
   Serial.begin(115200); //Inicialización de la comunicación serial con el monitor serial
   Serial2.begin(115200); //Comunicación UART con ESP32
   //SPI.setModule(0); //Implementación del módulo SPIO por la pantalla ili9341
@@ -90,15 +92,15 @@ void setup() {
   pinMode(RED_LED, OUTPUT);
 
   //Interfaz gráfica de la pantalla TFT ili9341
-  //Serial.println("Inicio");
-  //LCD_Init();
-  //LCD_Clear(0x00);
+  Serial.println("Inicio");
+  LCD_Init();
+  LCD_Clear(0x00);
 
-  //FillRect(0, 0, 319, 210, 0x421b);
-  //String text1 = "Temperatura:";
-  //LCD_Print(text1, 65, 100, 2, 0xffff, 0x421b);
-  //LCD_Bitmap(20, 15, 64, 64, temperature);
-  //delay(5000);
+  FillRect(0, 0, 319, 210, 0x421b);
+  String text1 = "BPM:";
+  LCD_Print(text1, 65, 100, 2, 0xffff, 0x421b);
+  LCD_Bitmap(20, 15, 64, 64, temperature);
+  delay(5000);
 }
 
 //Loop Infinito
@@ -116,22 +118,21 @@ void loop() {
     receivedvaluesensor=Serial2.parseFloat();
     Serial.print("BPM:"); //Hay un delay de entre 10 a 15 segundos para recibir el valor del sensor actual por el FFT
     Serial.println(receivedvaluesensor);
-  }
-    //Impresión de temperatura 
-    //int tempInt = receivedvaluesensor*100;
+    //Impresión del bpm 
+    int bpmInt = receivedvaluesensor*100;
     //Cálculos mediante módulo
-    /*int tempunidad = (tempInt/1)%10; //Cálculo del decimal del valor de temperatura, lo multiplica por 10 para convertirlo en una fracción de 10 grados y almacena el resultado como un número entero en la variable tempDecimal.
-    int tempdecena = (tempInt/10)%10;
-    int tempdecimal = (tempInt/100)%10;
-    int tempcentena = (tempInt/1000)%10;
+    int bpmunidad = (bpmInt/1)%10; //Cálculo del decimal del valor de temperatura, lo multiplica por 10 para convertirlo en una fracción de 10 grados y almacena el resultado como un número entero en la variable tempDecimal.
+    int bpmdecena = (bpmInt/10)%10;
+    int bpmdecimal = (bpmInt/100)%10;
+    int bpmcentena = (bpmInt/1000)%10;
 
-    String UNI=String(tempunidad);
-    String DEK=String(tempdecena);
-    String DES=String(tempdecimal);
-    String CEN=String(tempcentena);
+    String UNI=String(bpmunidad);
+    String DEK=String(bpmdecena);
+    String DES=String(bpmdecimal);
+    String CEN=String(bpmcentena);
 
-    String tmp=CEN+DES+"."+DEK+UNI;
-    LCD_Print(tmp, 120, 120, 2, 0x1105, 0xF7BD);}*/
+    String bpm=CEN+DES+"."+DEK+UNI;
+    LCD_Print(bpm, 120, 120, 2, 0x1105, 0xF7BD);}
         
    //Verificación de BSD para guardar en la SD
    /*if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
@@ -156,11 +157,13 @@ void loop() {
         }
         delay(20);*/
 }
+//***************************************************************************************************************************************
 
+//FUNCIONES PARA EL FUNCIONAMIENTO DE LA PANTALLLA TFT ILI9341
 //***************************************************************************************************************************************
 // Función para inicializar LCD
 //***************************************************************************************************************************************
-/*void LCD_Init(void) {
+void LCD_Init(void) {
   pinMode(LCD_RST, OUTPUT);
   pinMode(LCD_CS, OUTPUT);
   pinMode(LCD_DC, OUTPUT);
@@ -469,4 +472,4 @@ void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int 
   }
     }
   digitalWrite(LCD_CS, HIGH);
-}*/
+}
