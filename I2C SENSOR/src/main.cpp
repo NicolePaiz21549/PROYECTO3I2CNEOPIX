@@ -19,17 +19,8 @@
 MAX30105 particleSensor;
 arduinoFFT FFT;
 
-double avered       = 0; 
-double aveir        = 0;
-double sumirrms     = 0;
-double sumredrms    = 0;
 int    i            = 0;
 int    Num          = 100;  // calculate SpO2 by this sampling interval
-int    Temperature;
-int    temp;
-float  ESpO2;               // initial value of estimated SpO2
-double FSpO2        = 0.7;  // filter factor for estimated SpO2
-double frate        = 0.95; // low pass filter for IR/red LED value to eliminate AC component
 
 #define TIMETOBOOT    3000  // wait for this time(msec) to output SpO2
 #define SCALE         88.0  // adjust to display heart beat and SpO2 in the same scale
@@ -89,8 +80,6 @@ void loop()
 {
    uint32_t ir, red, green;
    double fred, fir;
-   double SpO2 = 0; //raw SpO2 before low pass filtered
-   float red_beat = 0;
    
 #ifdef USEFIFO
    particleSensor.check();               // Check the sensor, read up to 3 samples
@@ -121,8 +110,6 @@ void loop()
          {
             vReal[idx] = redArray[idx];
             vImag[idx] = 0.0;
-
-            //Serial.println(redArray[idx]);
          }
 
          FFT = arduinoFFT(vReal, vImag, PULSE_SAMPLES, SAMPLE_FREQ); /* Create FFT object */
@@ -131,18 +118,12 @@ void loop()
          FFT.ComplexToMagnitude(); /* Compute magnitudes */
 
          double peak = FFT.MajorPeak();
-         //Serial.println(peak, 6);
-
-         // print in beats per minute
          beatsPerMinute = peak * 60;
          Serial.print("BPM: ");
          Serial.println(beatsPerMinute);
 
       }
-
   }
 #endif
-
-  //Serial.println(i);
 }
 //***********************************************************************************
