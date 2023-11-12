@@ -24,12 +24,12 @@ void setup()
     while (1);
   }
   Serial.println("Coloca tu dedo índice sobre el sensor con presión constante.");
-  byte ledBrightness = 60; //Brillo al máximo donde las opciones son: 0=OFF
+  byte ledBrightness = 0x7F; //Brillo al máximo donde las opciones son: 0=OFF
   byte sampleAverage = 4;
   byte ledMode = 2; //Donde las opciones son: 1 = ROJO, 2 = ROJO + IR, 3 = ROJO + IR + VERDE
   byte sampleRate = 100; 
   int pulseWidth = 411; //Detección de latidos normales
-  int adcRange = 4096; 
+  int adcRange = 16384; 
   particleSensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with default settings
   //particleSensor.setPulseAmplitudeRed(0x1F); //Máxima amplitud para el LED rojo
   //particleSensor.setPulseAmplitudeIR(0x1F); //Máxima amplitud para el LED infrarrojo
