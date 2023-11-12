@@ -13,6 +13,8 @@
 //***********************************************************************************
 
 //Definiciones de pines
+#define RXp2 16 
+#define TXp2 17
 //***********************************************************************************
 
 //Variables globales
@@ -30,23 +32,25 @@ int    Num          = 100;  // calculate SpO2 by this sampling interval
 #define PULSE_SAMPLES 256
 #define SAMPLE_FREQ   50
 
-// --- For Heart Rate ---
+// Variables para la frecuencia cardíaca --- For Heart Rate ---
 byte   rateSpot         = 0;
 long   lastBeat         = 0;  // Time at which the last beat occurred
 int    beatAvg          = 0;
 bool   detect_high      = 0;
-// ----------------------
 
 double redArray[PULSE_SAMPLES]; // array to store samples from the sensor
 double vReal[PULSE_SAMPLES];
 double vImag[PULSE_SAMPLES];
 double beatsPerMinute = 0;
+
+int request=0; //Comando para activar bandera de envio del valor medido por el sensor
 //***********************************************************************************
 
 //Configuración
 void setup()
 {
-   Serial.begin(115200);
+   Serial.begin(115200); //Comunicación con el monitor serial/PC
+   Serial2.begin(115200); //Comunicación UART 2 con la Tiva C
    Serial.setDebugOutput(true);
    Serial.println();
 
@@ -125,5 +129,13 @@ void loop()
       }
   }
 #endif
+
+if(Serial2.available()){
+      request = Serial2.parseInt();
+      if(request==1){
+         Serial2.print(beatsPerMinute);
+         delay(100); //Delay para que la Tiva C tenga tiempo para leer la respuesta
+      }
+}
 }
 //***********************************************************************************
