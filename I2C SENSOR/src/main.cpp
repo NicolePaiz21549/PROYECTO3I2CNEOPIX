@@ -1,76 +1,148 @@
+//***********************************************************************************
+//Universidad del Valle de Guatemala
+//Dulce Nicole Monney Paiz, 21549
+//BE3029 - Electrónica Digital 2
+//Proyecto 3 – I2C & NeoPixel
+//***********************************************************************************
+
+//Librerías
 #include <Arduino.h>
 #include <Wire.h>
-#include "MAX30105.h"
-#include "heartRate.h"
+#include "MAX30105.h"    
+#include "arduinoFFT.h"
+//***********************************************************************************
 
+//Definiciones de pines
+//***********************************************************************************
+
+//Variables globales
 MAX30105 particleSensor;
+arduinoFFT FFT;
 
-const byte RATE_SIZE = 4; //Increase this for more averaging. 4 is good.
-byte rates[RATE_SIZE]; //Array of heart rates
-byte rateSpot = 0;
-long lastBeat = 0; //Time at which the last beat occurred
-float beatsPerMinute; 
-int beatAvg; //Valor BPM 
+double avered       = 0; 
+double aveir        = 0;
+double sumirrms     = 0;
+double sumredrms    = 0;
+int    i            = 0;
+int    Num          = 100;  // calculate SpO2 by this sampling interval
+int    Temperature;
+int    temp;
+float  ESpO2;               // initial value of estimated SpO2
+double FSpO2        = 0.7;  // filter factor for estimated SpO2
+double frate        = 0.95; // low pass filter for IR/red LED value to eliminate AC component
 
+#define TIMETOBOOT    3000  // wait for this time(msec) to output SpO2
+#define SCALE         88.0  // adjust to display heart beat and SpO2 in the same scale
+#define SAMPLING      100   //25 //5     // if you want to see heart beat more precisely, set SAMPLING to 1
+#define FINGER_ON     30000 // if red signal is lower than this, it indicates your finger is not on the sensor
+#define USEFIFO
+#define PULSE_SAMPLES 256
+#define SAMPLE_FREQ   50
+
+// --- For Heart Rate ---
+byte   rateSpot         = 0;
+long   lastBeat         = 0;  // Time at which the last beat occurred
+int    beatAvg          = 0;
+bool   detect_high      = 0;
+// ----------------------
+
+double redArray[PULSE_SAMPLES]; // array to store samples from the sensor
+double vReal[PULSE_SAMPLES];
+double vImag[PULSE_SAMPLES];
+double beatsPerMinute = 0;
+//***********************************************************************************
+
+//Configuración
 void setup()
 {
-  Serial.begin(115200);
-  Serial.println("Inicializando...");
+   Serial.begin(115200);
+   Serial.setDebugOutput(true);
+   Serial.println();
 
-  // Initialize sensor
-  if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
-  {
-    Serial.println("No se encontró el sensor MAX30105. Por favor revisar cableado y/o alimentación. ");
-    while (1);
-  }
-  Serial.println("Coloca tu dedo índice sobre el sensor con presión constante.");
-  byte ledBrightness = 0x7F; //Brillo al máximo 
-  byte sampleAverage = 4;
-  byte ledMode = 2; //Donde las opciones son: 1 = ROJO, 2 = ROJO + IR, 3 = ROJO + IR + VERDE
-  byte sampleRate = 100; 
-  int pulseWidth = 411; //Detección de latidos normales
-  int adcRange = 16384; 
-  particleSensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with default settings
-  //particleSensor.setPulseAmplitudeRed(0x1F); //Máxima amplitud para el LED rojo
-  //particleSensor.setPulseAmplitudeIR(0x1F); //Máxima amplitud para el LED infrarrojo
-  particleSensor.setPulseAmplitudeGreen(0); //Turn off Green LED
+   Serial.println("Running...");
+   delay(3000);
+
+   // Initialize sensor
+   while (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
+   {
+      Serial.println("MAX30102 was not found. Please check wiring/power/solder jumper at MH-ET LIVE MAX30102 board. ");
+      //while (1);
+   }
+
+   //Setup to sense a nice looking saw tooth on the plotter
+   byte ledBrightness = 0x7F;  // Options: 0=Off to 255=50mA
+   byte sampleAverage = 4;     // Options: 1, 2, 4, 8, 16, 32
+   byte ledMode       = 2;     // Options: 1 = Red only, 2 = Red + IR, 3 = Red + IR + Green
+   //Options: 1 = IR only, 2 = Red + IR on MH-ET LIVE MAX30102 board
+   int sampleRate     = 200;   // Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
+   int pulseWidth     = 411;   // Options: 69, 118, 215, 411
+   int adcRange       = 16384; // Options: 2048, 4096, 8192, 16384
+  
+   // Set up the wanted parameters
+   particleSensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
+   particleSensor.enableDIETEMPRDY();
 }
+//***********************************************************************************
 
+//Loop principal
 void loop()
 {
-  long irValue = particleSensor.getIR();
+   uint32_t ir, red, green;
+   double fred, fir;
+   double SpO2 = 0; //raw SpO2 before low pass filtered
+   float red_beat = 0;
+   
+#ifdef USEFIFO
+   particleSensor.check();               // Check the sensor, read up to 3 samples
 
-  if (checkForBeat(irValue) == true)
-  {
-    //We sensed a beat!
-    long delta = millis() - lastBeat;
-    lastBeat = millis();
+   while (particleSensor.available()) 
+   {  // Do we have new data
+#ifdef MAX30105
+      red = particleSensor.getFIFORed(); // Sparkfun's MAX30105
+      ir  = particleSensor.getFIFOIR();  // Sparkfun's MAX30105
+#else
+      red = particleSensor.getFIFOIR();  // why getFOFOIR output Red data by MAX30102 on MH-ET LIVE breakout board
+      ir  = particleSensor.getFIFORed(); // why getFIFORed output IR data by MAX30102 on MH-ET LIVE breakout board
+#endif
 
-    beatsPerMinute = 60 / (delta / 1000.0);
+      i++;
+      i = i % PULSE_SAMPLES; // wrap around every 256 samples
+      fred = (double)red;
 
-    if (beatsPerMinute < 255 && beatsPerMinute > 20)
-    {
-      rates[rateSpot++] = (byte)beatsPerMinute; //Store this reading in the array
-      rateSpot %= RATE_SIZE; //Wrap variable
+      redArray[i] = fred; // populate the array
 
-      //Take average of readings
-      beatAvg = 0;
-      for (byte x = 0 ; x < RATE_SIZE ; x++)
-        beatAvg += rates[x];
-      beatAvg /= RATE_SIZE;
-    }
-    delay(50); //Para evitar saturación en todos los sentidos
+      particleSensor.nextSample(); // We're finished with this sample so move to next sample
+
+      if (i == 0) // execute every PULSE_SAMPLES
+      {
+         Serial.print("Time: ");
+         Serial.println(millis()); // can use this to determine time it takes to collect 256 samples (sample rate)
+         for (int idx=0; idx < PULSE_SAMPLES; idx++)
+         {
+            vReal[idx] = redArray[idx];
+            vImag[idx] = 0.0;
+
+            //Serial.println(redArray[idx]);
+         }
+
+         FFT = arduinoFFT(vReal, vImag, PULSE_SAMPLES, SAMPLE_FREQ); /* Create FFT object */
+         FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD); /* Weigh data */
+         FFT.Compute(FFT_FORWARD); /* Compute FFT */
+         FFT.ComplexToMagnitude(); /* Compute magnitudes */
+
+         double peak = FFT.MajorPeak();
+         //Serial.println(peak, 6);
+
+         // print in beats per minute
+         beatsPerMinute = peak * 60;
+         Serial.print("BPM: ");
+         Serial.println(beatsPerMinute);
+
+      }
+
   }
+#endif
 
-  Serial.print("IR=");
-  Serial.print(irValue);
-  Serial.print(", BPM=");
-  Serial.print(beatsPerMinute);
-  Serial.print(", Avg BPM=");
-  Serial.print(beatAvg);
-
-  if (irValue < 50000)
-    Serial.print(" No finger?");
-
-  Serial.println();
+  //Serial.println(i);
 }
+//***********************************************************************************
