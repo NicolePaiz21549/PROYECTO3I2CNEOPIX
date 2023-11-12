@@ -6,10 +6,8 @@
 //***************************************************************************************************************************************
 
 //Librerías
-#include <SPI.h>
+/*#include <SPI.h>
 #include <SD.h>
-
-#include "pitches.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -28,7 +26,7 @@
 
 #include "bitmaps.h"
 #include "font.h"
-#include "lcd_registers.h"
+#include "lcd_registers.h"*/
 //*********************************************************************************** 
 
 //Definición de pines
@@ -39,22 +37,15 @@ SCK a PA_2
 CS a PA_3 
 SD_CS a PB_3*/
 
-#define LCD_RST PD_0
+/*#define LCD_RST PD_0
 #define LCD_DC PD_1
-#define LCD_CS PA_3 
+#define LCD_CS PA_3*/
 
 #define BSENSE PF_4 //Botón para preguntar el valor del sensor al ESP32 - SW1
 #define BSD PF_0 //Botón para guardar el valor de la medición  del sensor en el SD - SW2
 #define RXp2 PD6
 #define TXp2 PD7
-#define CS_PIN PB_3 //aka pin 12 para el chip select del SD
-
-#define NOTE_A4  440
-#define NOTE_B4  494
-#define NOTE_E4  330
-#define NOTE_C5  329
-#define NOTE_G5  784
-#define buzzerpin 40
+//#define CS_PIN PB_3 //aka pin 12 para el chip select del SD
 //***************************************************************************************************************************************
 
 //Variables globales 
@@ -62,22 +53,10 @@ float receivedvaluesensor; //Variable determinada para recibir el valor del sens
 int clave=0; //Aviso al ESP32 de presión del botón BSENSE
 unsigned long lastDebounceTime=0;
 unsigned long debounceDelay=50;
-
-int melody1[] = { //Melodía medición
-  NOTE_A4, NOTE_C5, NOTE_B4, NOTE_E4};
-int noteDurations1[] = {
-1, 1, 1, 2,
-};
-
-int melody2[] = { //Melodía SD
-  NOTE_C5, NOTE_C5, NOTE_C5, NOTE_G5};
-int noteDurations2[] = {
-4, 4, 4, 2,
-};
 //***********************************************************************************
 
 //Prototipos de funciones
-void LCD_Init(void);
+/*void LCD_Init(void);
 void LCD_CMD(uint8_t cmd);
 void LCD_DATA(uint8_t data);
 void SetWindows(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
@@ -89,40 +68,37 @@ void FillRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, un
 void LCD_Print(String text, int x, int y, int fontSize, int color, int background);
 
 void LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned char bitmap[]);
-void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
-
-void melodysensor(void);
-void melodySD(void);
+void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);*/
 //***************************************************************************************************************************************
 
 //Configuración
 void setup() {
-  SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
+  //SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
   Serial.begin(115200); //Inicialización de la comunicación serial con el monitor serial
   Serial2.begin(115200); //Comunicación UART con ESP32
-  SPI.setModule(0); //Implementación del módulo SPIO por la pantalla ili9341
+  //SPI.setModule(0); //Implementación del módulo SPIO por la pantalla ili9341
   
-  Serial.print("Inicializando la tarjeta SD...");
-  if(!SD.begin(CS_PIN)){
-    Serial.println("¡Falló la inicialización de la tarjeta!D:");
-  }
-  Serial.println("Inicialización realizada:D");
+  //Serial.print("Inicializando la tarjeta SD...");
+  //if(!SD.begin(CS_PIN)){
+    //Serial.println("¡Falló la inicialización de la tarjeta!D:");
+  //}
+  //Serial.println("Inicialización realizada:D");
   
   //Configuración de los SW  
   pinMode(BSENSE, INPUT_PULLUP); //Configuración de SW1
   pinMode(BSD, INPUT_PULLUP); //Configuración de SW1
   pinMode(RED_LED, OUTPUT);
-  pinMode(buzzerpin, OUTPUT);
-  
-  Serial.println("Inicio");
-  LCD_Init();
-  LCD_Clear(0x00);
 
-  FillRect(0, 0, 319, 210, 0x421b);
-  String text1 = "Temperatura:";
-  LCD_Print(text1, 65, 100, 2, 0xffff, 0x421b);
-  LCD_Bitmap(20, 15, 64, 64, temperature);
-  delay(5000);
+  //Interfaz gráfica de la pantalla TFT ili9341
+  //Serial.println("Inicio");
+  //LCD_Init();
+  //LCD_Clear(0x00);
+
+  //FillRect(0, 0, 319, 210, 0x421b);
+  //String text1 = "Temperatura:";
+  //LCD_Print(text1, 65, 100, 2, 0xffff, 0x421b);
+  //LCD_Bitmap(20, 15, 64, 64, temperature);
+  //delay(5000);
 }
 
 //Loop Infinito
@@ -138,13 +114,13 @@ void loop() {
   
   if (Serial2.available()){ //Utilizar Serial2 para comunicarse con el ESP32
     receivedvaluesensor=Serial2.parseFloat();
-    Serial.print("LM35:");
+    Serial.print("BPM:");
     Serial.println(receivedvaluesensor);
-    melodysensor(); //Agregar melodía indicativa de que se realizó una medición con el sensor
+  }
     //Impresión de temperatura 
-    int tempInt = receivedvaluesensor*100;
+    //int tempInt = receivedvaluesensor*100;
     //Cálculos mediante módulo
-    int tempunidad = (tempInt/1)%10; //Cálculo del decimal del valor de temperatura, lo multiplica por 10 para convertirlo en una fracción de 10 grados y almacena el resultado como un número entero en la variable tempDecimal.
+    /*int tempunidad = (tempInt/1)%10; //Cálculo del decimal del valor de temperatura, lo multiplica por 10 para convertirlo en una fracción de 10 grados y almacena el resultado como un número entero en la variable tempDecimal.
     int tempdecena = (tempInt/10)%10;
     int tempdecimal = (tempInt/100)%10;
     int tempcentena = (tempInt/1000)%10;
@@ -155,10 +131,10 @@ void loop() {
     String CEN=String(tempcentena);
 
     String tmp=CEN+DES+"."+DEK+UNI;
-    LCD_Print(tmp, 120, 120, 2, 0x1105, 0xF7BD);}
+    LCD_Print(tmp, 120, 120, 2, 0x1105, 0xF7BD);}*/
         
    //Verificación de BSD para guardar en la SD
-   if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
+   /*if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
     lastDebounceTime=millis();
     //if(dataFile){
       File dataFile=SD.open("datalog.txt", FILE_WRITE); //Apertura del archivo en modo escritura
@@ -173,19 +149,18 @@ void loop() {
         else{
           Serial.println("Error al abrir el archivo datalog.txt y no se ha guardado la medida de temperatura");
         }
-        melodySD();
         String text2 = "Almacenada en SD:D";
         LCD_Print(text2, 20, 150, 2, 0xffff, 0x421b);
         delay(1000);
         FillRect(20, 150, 2000, 40, 0x421b);
         }
-        delay(20);
+        delay(20);*/
 }
 
 //***************************************************************************************************************************************
 // Función para inicializar LCD
 //***************************************************************************************************************************************
-void LCD_Init(void) {
+/*void LCD_Init(void) {
   pinMode(LCD_RST, OUTPUT);
   pinMode(LCD_CS, OUTPUT);
   pinMode(LCD_DC, OUTPUT);
@@ -494,25 +469,4 @@ void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int 
   }
     }
   digitalWrite(LCD_CS, HIGH);
-}
-
-//Funciones musicales 
-void melodysensor(void){
-  for (int thisNote = 0; thisNote < 4; thisNote++) {
-    int noteDuration = 100/noteDurations1[thisNote];
-    tone(buzzerpin, melody1[thisNote],noteDuration);
-    int pauseBetweenNotes = noteDuration + 50;     //delay between pulse
-    delay(pauseBetweenNotes);
-    noTone(buzzerpin);         // stop the tone playing
-  }
-  }
-
-void melodySD(void){
-  for (int thisNote = 0; thisNote < 4; thisNote++) {
-    int noteDuration = 100/noteDurations2[thisNote];
-    tone(buzzerpin, melody2[thisNote],noteDuration);
-    int pauseBetweenNotes = noteDuration + 50;     //delay between pulse
-    delay(pauseBetweenNotes);
-    noTone(buzzerpin);         // stop the tone playing
-  }
-  }
+}*/
