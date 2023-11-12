@@ -2,7 +2,7 @@
 //Universidad del Valle de Guatemala
 //Dulce Nicole Monney Paiz, 21549
 //BE3029 - Electrónica Digital 2
-//Proyecto 2 – SPI, TFT & SD
+//Proyecto 3 – I2C & NeoPixel
 //***************************************************************************************************************************************
 
 //Librerías
