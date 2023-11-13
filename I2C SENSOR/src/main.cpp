@@ -125,7 +125,7 @@ void loop()
          beatsPerMinute = peak * 60;
          Serial.print("BPM: ");
          Serial.println(beatsPerMinute);
-         if (ir < 10000)
+         if (ir < 51000)
          Serial.print(" No finger?");
          Serial.println();
       }
