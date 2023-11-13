@@ -29,7 +29,7 @@ int    Num          = 100;  // calculate SpO2 by this sampling interval
 #define SAMPLING      100   //25 //5     // if you want to see heart beat more precisely, set SAMPLING to 1
 #define FINGER_ON     50000 // if red signal is lower than this, it indicates your finger is not on the sensor
 #define USEFIFO
-#define PULSE_SAMPLES 256
+#define PULSE_SAMPLES 4 //Originalmente eran 256
 #define SAMPLE_FREQ   50
 
 // Variables para la frecuencia cardíaca --- For Heart Rate ---
