@@ -68,6 +68,8 @@ void loop() {
     receivedvaluesensor=Serial2.parseFloat();
     Serial.print("BPM:"); //Hay un delay de entre 10 a 15 segundos para recibir el valor del sensor actual por el FFT
     Serial.println(receivedvaluesensor);
+    //if(receivedvaluesensor==0.00)
+    //Serial.print("No finger?");
     }
         
    //Verificación de BSD para guardar en la SD
