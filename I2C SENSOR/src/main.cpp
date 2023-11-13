@@ -27,7 +27,7 @@ int    Num          = 100;  // calculate SpO2 by this sampling interval
 #define TIMETOBOOT    3000  // wait for this time(msec) to output SpO2
 #define SCALE         88.0  // adjust to display heart beat and SpO2 in the same scale
 #define SAMPLING      100   //25 //5     // if you want to see heart beat more precisely, set SAMPLING to 1
-#define FINGER_ON     30000 // if red signal is lower than this, it indicates your finger is not on the sensor
+#define FINGER_ON     51000 // if red signal is lower than this, it indicates your finger is not on the sensor
 #define USEFIFO
 #define PULSE_SAMPLES 256
 #define SAMPLE_FREQ   50
@@ -125,7 +125,9 @@ void loop()
          beatsPerMinute = peak * 60;
          Serial.print("BPM: ");
          Serial.println(beatsPerMinute);
-
+         if (ir < 10000)
+         Serial.print(" No finger?");
+         Serial.println();
       }
   }
 #endif
