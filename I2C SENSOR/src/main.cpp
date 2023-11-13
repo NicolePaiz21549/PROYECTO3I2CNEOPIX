@@ -10,11 +10,11 @@
 #include <Wire.h>
 #include "MAX30105.h"    
 #include "arduinoFFT.h"
-//Librerías para el neopixe
-#include <Adafruit_NeoPixel.h>
+//Librerías para el neopixel
+/*#include <Adafruit_NeoPixel.h>
 #ifdef _AVR_
 #include <avr/power.h> // Required for AVR chips
-#endif
+#endif*/
 //***********************************************************************************
 
 //Definiciones de pines
@@ -51,24 +51,24 @@ double beatsPerMinute = 0;
 
 int request=0; //Comando para activar bandera de envio del valor medido por el sensor
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, PIN, NEO_GRB + NEO_KHZ800);
+//Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, PIN, NEO_GRB + NEO_KHZ800);
 //***********************************************************************************
 
 //Prototipos de funciones
-void colorWipe(uint32_t c, uint8_t wait);
+//void colorWipe(uint32_t c, uint8_t wait);
 //***********************************************************************************
 
 //Configuración
 void setup()
 {
-   //NEOPIXEL
+   /*//NEOPIXEL
    #if defined (_AVR_ATtiny85_)
    if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
    #endif
    
    strip.begin();
    strip.setBrightness(50);
-   strip.show(); // Initialize all pixels to 'off'
+   strip.show(); // Initialize all pixels to 'off'*/
    //***********************************************************************************
 
    Serial.begin(115200); //Comunicación con el monitor serial/PC
@@ -104,7 +104,7 @@ void setup()
 //Loop principal
 void loop()
 {
-   colorWipe(strip.Color(0, 0, 255), 50); //AZUL
+   //colorWipe(strip.Color(0, 0, 255), 50); //AZUL
 
    uint32_t ir, red, green;
    double fred, fir;
@@ -172,11 +172,11 @@ if(Serial2.available()){
 
 //FUNCIONES DEL NEOPIXEL
    //Llenado de los neopixeles uno después del otro
-   void colorWipe(uint32_t c, uint8_t wait){
+   /*void colorWipe(uint32_t c, uint8_t wait){
       for (uint16_t i = 0; i < strip.numPixels(); i++){
          strip.setPixelColor(i, c);
          strip.show();
          delay(wait);
       }
-   }
+   }*/
    //***********************************************************************************
