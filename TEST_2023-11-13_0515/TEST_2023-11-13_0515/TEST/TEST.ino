@@ -87,11 +87,11 @@ void setup() {
   Serial2.begin(115200); //Comunicación UART con ESP32
   SPI.setModule(0); //Implementación del módulo SPIO por la pantalla ili9341
   
-  /*Serial.print("Inicializando la tarjeta SD...");
+  Serial.print("Inicializando la tarjeta SD...");
   if(!SD.begin(CS_PIN)){
     Serial.println("¡Falló la inicialización de la tarjeta!D:");
   }
-  Serial.println("Inicialización realizada:D");*/
+  Serial.println("Inicialización realizada:D");
   
   //Configuración de los SW  
   pinMode(BSENSE, INPUT_PULLUP); //Configuración de SW1
@@ -150,7 +150,7 @@ void loop() {
     }
         
    //Verificación de BSD para guardar en la SD
-   /*if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
+   if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
     lastDebounceTime=millis();
     //if(dataFile){
       File dataFile=SD.open("datalog.txt", FILE_WRITE); //Apertura del archivo en modo escritura
@@ -164,12 +164,12 @@ void loop() {
         else{
           Serial.println("Error al abrir el archivo datalog.txt y no se ha guardado la medida de temperatura");
         }
-        String text2 = "Almacenada en SD:D";
-        LCD_Print(text2, 20, 150, 2, 0xffff, 0x421b);
+        String text2 = "Almacenada en SD";
+        LCD_Print(text2, 20, 190, 2, 0xffff, 0x421b);
         delay(1000);
         FillRect(20, 150, 2000, 40, 0x421b);
         }
-        delay(20);*/
+        delay(20);
 }
 
 //FUNCIONES PARA EL FUNCIONAMIENTO DE LA PANTALLLA TFT ILI9341
