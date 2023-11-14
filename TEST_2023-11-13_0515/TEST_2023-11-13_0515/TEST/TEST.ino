@@ -110,7 +110,13 @@ void setup() {
 }
 
 //Loop Infinito
-void loop() {    
+void loop() {
+        for(int x =0; x<320-107; x++){
+    delay(15);   
+    int anim2=(x/10)%3;
+    LCD_Sprite(107, 20, 107, 80, heart, 3, anim2, 0, 0);
+    }
+
   //Verificación de BSENSE para realizar la medición del sensor
   if(digitalRead(BSENSE) == LOW && (millis()-lastDebounceTime)>debounceDelay){
     digitalWrite(RED_LED, HIGH); //Control LED
@@ -146,12 +152,12 @@ void loop() {
     Serial2.println(BPM);
   }
     
-    for(int x =0; x<320-107; x++){
+    /*for(int x =0; x<320-107; x++){
     delay(15);   
     int anim2=(x/10)%3;
     LCD_Sprite(107, 20, 107, 80, heart, 3, anim2, 0, 0);
     }
-    }
+    }*/
         
    //Verificación de BSD para guardar en la SD
    if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
@@ -174,6 +180,7 @@ void loop() {
         FillRect(20, 190, 2000, 40, 0x421b);
         }
         //delay(20);
+}
 }
 
 //FUNCIONES PARA EL FUNCIONAMIENTO DE LA PANTALLLA TFT ILI9341
