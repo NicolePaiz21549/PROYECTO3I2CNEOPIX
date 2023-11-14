@@ -1,9 +1,8 @@
-//***********************************************************************************
 //Universidad del Valle de Guatemala
 //Dulce Nicole Monney Paiz, 21549
 //BE3029 - Electrónica Digital 2
 //Proyecto 3 – I2C & NeoPixel
-//***********************************************************************************
+//*****************************
 
 //Librerías
 #include <Arduino.h>
@@ -12,81 +11,81 @@
 #include "arduinoFFT.h"
 //Librerías para el neopixel
 /*#include <Adafruit_NeoPixel.h>
-#ifdef _AVR_
+#ifdef AVR
 #include <avr/power.h> // Required for AVR chips
 #endif*/
-//***********************************************************************************
+//*****************************
 
 //Definiciones de pines
 #define PIN 5
 #define RXp2 16 
 #define TXp2 17
-//***********************************************************************************
+//*****************************
 
 //Variables globales
 MAX30105 particleSensor;
 arduinoFFT FFT;
 
 int    i            = 0;
-int    Num          = 100;  // calculate SpO2 by this sampling interval
+int    Num          = 100;  // cálculo de SpO2 según este intervalo de muestreo
 
-#define TIMETOBOOT    3000  // wait for this time(msec) to output SpO2
-#define SCALE         88.0  // adjust to display heart beat and SpO2 in the same scale
-#define SAMPLING      100   //25 //5     // if you want to see heart beat more precisely, set SAMPLING to 1
-#define FINGER_ON     50000 // if red signal is lower than this, it indicates your finger is not on the sensor
+#define TIMETOBOOT    3000  // Tiempo de espera para mostrar SpO2
+#define SCALE         88.0  // Ajuste para mostrar frecuencia cardíaca y SpO2 en la misma escala
+#define SAMPLING      1   //Intervalo de muestreo (si se quiere ver la frecuencia cardíaca con más precisión, ajustar a 1)
+#define FINGER_ON     50000 // Si la señal roja es menor que esto, indica que el dedo no está en el sensor
 #define USEFIFO
 #define PULSE_SAMPLES 256 //Originalmente eran 256 (Se pueden reducir a 4 o 64 o incluso 128 para comprobar si UART está en tiempo)
-#define SAMPLE_FREQ   50
+#define SAMPLE_FREQ   50 //Frecuencia de muestreo
 
-// Variables para la frecuencia cardíaca --- For Heart Rate ---
+// Variables para la frecuencia cardíaca
 byte   rateSpot         = 0;
-long   lastBeat         = 0;  // Time at which the last beat occurred
+long   lastBeat         = 0;  // Tiempo en el que ocurrió el último latido
 int    beatAvg          = 0;
 bool   detect_high      = 0;
 
-double redArray[PULSE_SAMPLES]; // array to store samples from the sensor
+double redArray[PULSE_SAMPLES]; // array para almacenar muestras del sensor
 double vReal[PULSE_SAMPLES];
 double vImag[PULSE_SAMPLES];
 double beatsPerMinute = 0;
 
-int request=0; //Comando para activar bandera de envio del valor medido por el sensor
+String request; //Variable que recibe de regreso el valor de la medición de sensor
 
 //Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, PIN, NEO_GRB + NEO_KHZ800);
-//***********************************************************************************
+//*****************************
 
 //Prototipos de funciones
 //void colorWipe(uint32_t c, uint8_t wait);
-//***********************************************************************************
+//*****************************
 
 //Configuración
 void setup()
 {
    /*//NEOPIXEL
-   #if defined (_AVR_ATtiny85_)
+   #if defined (AVR_ATtiny85)
    if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
    #endif
    
    strip.begin();
    strip.setBrightness(50);
    strip.show(); // Initialize all pixels to 'off'*/
-   //***********************************************************************************
+   //*****************************
 
    Serial.begin(115200); //Comunicación con el monitor serial/PC
    Serial2.begin(115200); //Comunicación UART 2 con la Tiva C
-   Serial.setDebugOutput(true);
+   //Serial.setDebugOutput(true);
    Serial.println();
 
-   Serial.println("Running...");
+   Serial.println("Cargando...");
    delay(3000);
 
-   // Initialize sensor
-   while (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
+   // Inicialización del sensor
+   while (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Usando el puerto I2C predeterminado, velocidad de 400 kHz
    {
-      Serial.println("MAX30102 was not found. Please check wiring/power/solder jumper at MH-ET LIVE MAX30102 board. ");
+      Serial.println("No se encontró MAX30102. Verificar el puente de cableado/alimentación/soldadura en la placa MH-ET LIVE MAX30102. ");
       //while (1);
    }
 
-   //Setup to sense a nice looking saw tooth on the plotter
+   //Configuración para detectar un bonito diente de sierra en el trazador
    byte ledBrightness = 0x7F;  // Options: 0=Off to 255=50mA
    byte sampleAverage = 4;     // Options: 1, 2, 4, 8, 16, 32
    byte ledMode       = 2;     // Options: 1 = Red only, 2 = Red + IR, 3 = Red + IR + Green
@@ -95,11 +94,11 @@ void setup()
    int pulseWidth     = 411;   // Options: 69, 118, 215, 411
    int adcRange       = 16384; // Options: 2048, 4096, 8192, 16384
   
-   // Set up the wanted parameters
+   // Configuración de los parámetros deseados
    particleSensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
    particleSensor.enableDIETEMPRDY();
 }
-//***********************************************************************************
+//*****************************
 
 //Loop principal
 void loop()
@@ -110,65 +109,71 @@ void loop()
    double fred, fir;
    
 #ifdef USEFIFO
-   particleSensor.check();               // Check the sensor, read up to 3 samples
+   particleSensor.check();               // Verificación del sensor, lea hasta 3 muestras
 
    while (particleSensor.available()) 
-   {  // Do we have new data
+   {  //¿Hay nuevos datos?
 #ifdef MAX30105
       red = particleSensor.getFIFORed(); // Sparkfun's MAX30105
       ir  = particleSensor.getFIFOIR();  // Sparkfun's MAX30105
 #else
-      red = particleSensor.getFIFOIR();  // why getFOFOIR output Red data by MAX30102 on MH-ET LIVE breakout board
-      ir  = particleSensor.getFIFORed(); // why getFIFORed output IR data by MAX30102 on MH-ET LIVE breakout board
+      red = particleSensor.getFIFOIR();  // ¿Por qué getFOFOIR genera datos rojos mediante MAX30102 en la placa de conexión MH-ET LIVE?
+      ir  = particleSensor.getFIFORed(); // ¿Por qué getFOFOIRed genera datos del infrarrojo mediante MAX30102 en la placa de conexión MH-ET LIVE? 
 #endif
 
       i++;
-      i = i % PULSE_SAMPLES; // wrap around every 256 samples
+      i = i % PULSE_SAMPLES; // realizar 256 muestras
       fred = (double)red;
 
-      redArray[i] = fred; // populate the array
+      redArray[i] = fred; // llenado del array
 
-      particleSensor.nextSample(); // We're finished with this sample so move to next sample
+      particleSensor.nextSample(); // //Se terminó con esta muestra, así que pase a la siguiente. 
 
-      if (i == 0) // execute every PULSE_SAMPLES
+      if (i == 0) // Ejecutar cada PULSE_SAMPLES
       {
-         Serial.print("Time: ");
-         Serial.println(millis()); // can use this to determine time it takes to collect 256 samples (sample rate)
+         //Serial.print("Time: ");
+         //Serial.println(millis()); // Se puede usar esto para determinar el tiempo que lleva recolectar 256 muestras (frecuencia de muestreo).
          for (int idx=0; idx < PULSE_SAMPLES; idx++)
          {
             vReal[idx] = redArray[idx];
             vImag[idx] = 0.0;
          }
 
-         FFT = arduinoFFT(vReal, vImag, PULSE_SAMPLES, SAMPLE_FREQ); /* Create FFT object */
-         FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD); /* Weigh data */
-         FFT.Compute(FFT_FORWARD); /* Compute FFT */
-         FFT.ComplexToMagnitude(); /* Compute magnitudes */
+         FFT = arduinoFFT(vReal, vImag, PULSE_SAMPLES, SAMPLE_FREQ); /* Creación de un objeto FFT */
+         FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD); /* Peso de la data */
+         FFT.Compute(FFT_FORWARD); /* Computar FFT */
+         FFT.ComplexToMagnitude(); /* Computar magnitudes */
 
          double peak = FFT.MajorPeak();
          beatsPerMinute = peak * 60;
-         Serial.print("BPM: ");
-         Serial.println(beatsPerMinute);
-         if (ir < 50000)
-         Serial.print(" No finger?");
-         Serial.print("ir:");
-         Serial.print(ir);
-         Serial.println();
+         //int bpm = beatsPerMinute;
+         Serial2.println(beatsPerMinute);  
+         delay(50); // Tiempo para que la Tiva C lea el valor del bpm 
+
+         //Serial.print("BPM: ");
+         //Serial.println(beatsPerMinute);
+         //if (ir < 50000)
+         //Serial.print(" No finger?");
+         //Serial.print("ir:");
+         //Serial.print(ir);
+         //Serial.println();
       }
   }
 #endif
 
 if(Serial2.available()){
-      request = Serial2.parseInt();
-      if(request==1){
-         Serial2.print(beatsPerMinute);
-         //if (ir < 50000)
-         //Serial2.print(" No finger?");
-         delay(100); //Delay para que la Tiva C tenga tiempo para leer la respuesta
+      request = Serial2.readStringUntil('\n');
+      Serial.print("BPM: ");
+      Serial.println(request);
+      //if(request==1){
+      //Serial.print("BPM: ");
+      //Serial.println(request);
+      //if (ir < 50000)
+      //Serial2.print(" No finger?");
+      //delay(100); // Delay para que la Tiva C tenga tiempo para leer la respuesta
       }
 }
-}
-//***********************************************************************************
+//*****************************
 
 //FUNCIONES DEL NEOPIXEL
    //Llenado de los neopixeles uno después del otro
@@ -179,4 +184,4 @@ if(Serial2.available()){
          delay(wait);
       }
    }*/
-   //***********************************************************************************
+   //*****************************
