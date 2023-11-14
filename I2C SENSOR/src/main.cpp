@@ -31,7 +31,7 @@ int    Num          = 100;  // cálculo de SpO2 según este intervalo de muestre
 
 #define TIMETOBOOT    3000  // Tiempo de espera para mostrar SpO2
 #define SCALE         88.0  // Ajuste para mostrar frecuencia cardíaca y SpO2 en la misma escala
-#define SAMPLING      1   //Intervalo de muestreo (si se quiere ver la frecuencia cardíaca con más precisión, ajustar a 1)
+#define SAMPLING      100   //Intervalo de muestreo (si se quiere ver la frecuencia cardíaca con más precisión, ajustar a 1)
 #define FINGER_ON     50000 // Si la señal roja es menor que esto, indica que el dedo no está en el sensor
 #define USEFIFO
 #define PULSE_SAMPLES 256 //Originalmente eran 256 (Se pueden reducir a 4 o 64 o incluso 128 para comprobar si UART está en tiempo)
@@ -146,8 +146,8 @@ void loop()
 
          double peak = FFT.MajorPeak();
          beatsPerMinute = peak * 60;
-         //int bpm = beatsPerMinute;
-         Serial2.println(beatsPerMinute);  
+         int bpm = round(beatsPerMinute);
+         Serial2.println(bpm);  
          delay(50); // Tiempo para que la Tiva C lea el valor del bpm 
 
          //Serial.print("BPM: ");
@@ -163,7 +163,7 @@ void loop()
 
 if(Serial2.available()){
       request = Serial2.readStringUntil('\n');
-      Serial.print("BPM: ");
+      //Serial.print("BPM: ");
       Serial.println(request);
       //if(request==1){
       //Serial.print("BPM: ");
