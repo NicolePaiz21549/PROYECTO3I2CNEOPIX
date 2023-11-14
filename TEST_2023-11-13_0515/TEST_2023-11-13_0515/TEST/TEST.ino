@@ -136,8 +136,8 @@ void loop() {
     //Impresión del bpm
     String BPM=String(receivedvaluesensor); //Impresión en la pantalla TFT ili9341
 
-    Serial2.print("BPM:");
-    Serial2.println(BPM);
+    //Serial2.print("BPM:");
+    //Serial2.println(BPM);
     
     if (receivedvaluesensor >= 35 && receivedvaluesensor <= 99) {
       // Si el valor está entre 35 y 99, se agrega un espacio en el tercer dígito
