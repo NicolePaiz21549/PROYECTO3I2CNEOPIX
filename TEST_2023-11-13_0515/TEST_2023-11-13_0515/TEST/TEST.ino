@@ -106,7 +106,6 @@ void setup() {
   FillRect(0, 0, 320, 240, 0x421b);
   String text1 = "BPM:";
   LCD_Print(text1, 128, 116, 2, 0xffff, 0x421b);
-  //LCD_Bitmap(20, 15, 64, 64, temperature);
   delay(1000);
 }
 
@@ -120,9 +119,6 @@ void loop() {
     receivedvaluesensor=Serial2.parseInt();
     Serial.println("BPM:");
     Serial.println(receivedvaluesensor);
-    //Serial2.print("BPM:");
-    //Serial2.println(receivedvaluesensor);
-    //delay(50); // Tiempo para que la Tiva C lea el valor del bpm
     if(receivedvaluesensor<35){
       receivedvaluesensor=35;
       } else if(receivedvaluesensor>200){
@@ -133,6 +129,10 @@ void loop() {
     
     //Impresión del bpm
     String BPM=String(receivedvaluesensor); //Impresión en la pantalla TFT ili9341
+
+    Serial2.print("BPM:");
+    Serial2.println(BPM);
+    
     if (receivedvaluesensor >= 35 && receivedvaluesensor <= 99) {
       // Si el valor está entre 35 y 99, se agrega un espacio en el tercer dígito
       BPM = String(String(receivedvaluesensor).substring(0, 2) + " " + String(receivedvaluesensor).substring(2));
@@ -144,10 +144,6 @@ void loop() {
     FillRect(120, 140, 2, 0x1105, 0x421b);
     Serial2.print("BPM:");
     Serial2.println(BPM);
-    
-    //clave=1; 
-    //Serial2.print(clave); //Pedir al ESP32 el valor del sensor
-    //Serial2.print("∖n");
   }
     
     for(int x =0; x<320-107; x++){
@@ -175,9 +171,9 @@ void loop() {
         String text2 = "Almacenada en SD";
         LCD_Print(text2, 20, 190, 2, 0xffff, 0x421b);
         delay(1000);
-        FillRect(20, 150, 2000, 40, 0x421b);
+        FillRect(20, 190, 2000, 40, 0x421b);
         }
-        delay(20);
+        //delay(20);
 }
 
 //FUNCIONES PARA EL FUNCIONAMIENTO DE LA PANTALLLA TFT ILI9341
