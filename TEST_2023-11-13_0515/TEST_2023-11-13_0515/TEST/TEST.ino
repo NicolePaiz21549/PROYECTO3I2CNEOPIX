@@ -55,8 +55,8 @@ SD_CS a PB_3*/
 //***************************************************************************************************************************************
 
 //Variables globales 
-float receivedvaluesensor; //Variable determinada para recibir el valor del sensor LM35 y que se enviará a la ILI9341 & a la SD
-int clave=0; //Aviso al ESP32 de presión del botón BSENSE aka flag
+float receivedvaluesensor=0.0; //Variable determinada para recibir el valor del sensor LM35 y que se enviará a la ILI9341 & a la SD
+//int clave=0; //Aviso al ESP32 de presión del botón BSENSE aka flag
 unsigned long lastDebounceTime=0;
 unsigned long debounceDelay=50;
 //***********************************************************************************
@@ -116,31 +116,38 @@ void loop() {
   if(digitalRead(BSENSE) == LOW && (millis()-lastDebounceTime)>debounceDelay){
     digitalWrite(RED_LED, HIGH); //Control LED
     lastDebounceTime = millis();
-    clave=1; 
-    Serial2.print(clave); //Pedir al ESP32 el valor del sensor
-    Serial2.print("∖n");
-  }
-  
-  if (Serial2.available()){ //Utilizar Serial2 para comunicarse con el ESP32
+    if (Serial2.available()){ //Utilizar Serial2 para comunicarse con el ESP32
     receivedvaluesensor=Serial2.parseFloat();
-    Serial.print("BPM:");
+    Serial.println("BPM:");
     Serial.println(receivedvaluesensor);
+    //Serial2.print("BPM:");
+    //Serial2.println(receivedvaluesensor);
+    delay(50); // Tiempo para que la Tiva C lea el valor del bpm 
+    
     //Impresión de temperatura 
     int bpmInt = receivedvaluesensor*100;
     //Cálculos mediante módulo para imprimir el valor flotante obtenido de la medición de la temperatura a entero
     int bpmunidad = (bpmInt/1)%10; 
     int bpmdecena = (bpmInt/10)%10;
-    int bpmdecimal = (bpmInt/100)%10;
-    int bpmcentena = (bpmInt/1000)%10;
+    int bpmcentena = (bpmInt/100)%10;
+    int bpmmil = (bpmInt/1000)%10;
 
     //Transformación a string del entero obtenido del valor flotante de la medición
     String UNI=String(bpmunidad);
     String DEK=String(bpmdecena);
-    String DES=String(bpmdecimal);
     String CEN=String(bpmcentena);
+    String MIL=String(bpmmil);
+    //String FINAL =String(receivedvaluesensor);
 
-    String bpm=CEN+DES+"."+DEK+UNI; //Impresión en la pantalla TFT ili9341
+    String bpm=MIL+CEN+DEK+UNI; //Impresión en la pantalla TFT ili9341
     LCD_Print(bpm, 120, 140, 2, 0x1105, 0xF7BD);
+    Serial2.print("BPM:");
+    Serial2.println(bpm);
+    
+    //clave=1; 
+    //Serial2.print(clave); //Pedir al ESP32 el valor del sensor
+    //Serial2.print("∖n");
+  }
     
     for(int x =0; x<320-107; x++){
     delay(15);   
