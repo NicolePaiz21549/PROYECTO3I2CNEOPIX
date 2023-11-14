@@ -56,7 +56,7 @@ SD_CS a PB_3*/
 
 //Variables globales 
 int receivedvaluesensor=0; //Variable determinada para recibir el valor del sensor LM35 y que se enviará a la ILI9341 & a la SD
-//int clave=0; //Aviso al ESP32 de presión del botón BSENSE aka flag
+int clave=0; //Aviso al ESP32 de presión del botón BSENSE aka flag
 unsigned long lastDebounceTime=0;
 unsigned long debounceDelay=50;
 //***********************************************************************************
@@ -121,10 +121,15 @@ void loop() {
   if(digitalRead(BSENSE) == LOW && (millis()-lastDebounceTime)>debounceDelay){
     digitalWrite(RED_LED, HIGH); //Control LED
     lastDebounceTime = millis();
+    clave=1;
+    Serial2.print(clave); //Activación neopixel via UART2
+    
+  //}
     if (Serial2.available()){ //Utilizar Serial2 para comunicarse con el ESP32
     receivedvaluesensor=Serial2.parseInt();
     Serial.println("BPM:");
     Serial.println(receivedvaluesensor);
+    
     if(receivedvaluesensor<35){
       receivedvaluesensor=35;
       } else if(receivedvaluesensor>200){
@@ -150,6 +155,7 @@ void loop() {
     FillRect(120, 140, 2, 0x1105, 0x421b);
     Serial2.print("BPM:");
     Serial2.println(BPM);
+  }
   }
     
     /*for(int x =0; x<320-107; x++){
@@ -180,7 +186,6 @@ void loop() {
         FillRect(20, 190, 2000, 40, 0x421b);
         }
         //delay(20);
-}
 }
 
 //FUNCIONES PARA EL FUNCIONAMIENTO DE LA PANTALLLA TFT ILI9341
