@@ -10,10 +10,10 @@
 #include "MAX30105.h"    
 #include "arduinoFFT.h"
 //Librerías para el neopixel
-/*#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
 #ifdef AVR
-#include <avr/power.h> // Required for AVR chips
-#endif*/
+#include <avr/power.h> // Requisito para AVR chips
+#endif
 //*****************************
 
 //Definiciones de pines
@@ -50,24 +50,24 @@ double beatsPerMinute = 0;
 
 String request; //Variable que recibe de regreso el valor de la medición de sensor
 
-//Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, PIN, NEO_GRB + NEO_KHZ800);
 //*****************************
 
 //Prototipos de funciones
-//void colorWipe(uint32_t c, uint8_t wait);
+void colorWipe(uint32_t c, uint8_t wait);
 //*****************************
 
 //Configuración
 void setup()
 {
-   /*//NEOPIXEL
+   //NEOPIXEL
    #if defined (AVR_ATtiny85)
    if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
    #endif
    
    strip.begin();
    strip.setBrightness(50);
-   strip.show(); // Initialize all pixels to 'off'*/
+   strip.show(); // Inicializa todos los píxeles en "apagado"
    //*****************************
 
    Serial.begin(115200); //Comunicación con el monitor serial/PC
@@ -103,7 +103,6 @@ void setup()
 //Loop principal
 void loop()
 {
-   //colorWipe(strip.Color(0, 0, 255), 50); //AZUL
 
    uint32_t ir, red, green;
    double fred, fir;
@@ -149,6 +148,7 @@ void loop()
          int bpm = round(beatsPerMinute);
          Serial2.println(bpm);  
          delay(50); // Tiempo para que la Tiva C lea el valor del bpm 
+         colorWipe(strip.Color(0, 0, 255), 5); //AZUL probar con 5 o 10
 
          //Serial.print("BPM: ");
          //Serial.println(beatsPerMinute);
@@ -177,11 +177,11 @@ if(Serial2.available()){
 
 //FUNCIONES DEL NEOPIXEL
    //Llenado de los neopixeles uno después del otro
-   /*void colorWipe(uint32_t c, uint8_t wait){
+   void colorWipe(uint32_t c, uint8_t wait){
       for (uint16_t i = 0; i < strip.numPixels(); i++){
          strip.setPixelColor(i, c);
          strip.show();
          delay(wait);
       }
-   }*/
+   }
    //*****************************
