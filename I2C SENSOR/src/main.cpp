@@ -49,6 +49,7 @@ double vImag[PULSE_SAMPLES];
 double beatsPerMinute = 0;
 
 String request; //Variable que recibe de regreso el valor de la medición de sensor
+int clavedos = 0; //Comando para activar la bandera de envio para el neopixel
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, PIN, NEO_GRB + NEO_KHZ800);
 //*****************************
@@ -171,6 +172,8 @@ if(Serial2.available()){
       //if (ir < 50000)
       //Serial2.print(" No finger?");
       //delay(100); // Delay para que la Tiva C tenga tiempo para leer la respuesta
+      clavedos = Serial.parseInt();
+      colorWipe(strip.Color(0, 255, 0), 10); // Green      
       }
 }
 //*****************************
