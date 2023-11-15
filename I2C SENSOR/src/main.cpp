@@ -131,8 +131,8 @@ void loop()
 
       if (i == 0) // Ejecutar cada PULSE_SAMPLES
       {
-         //Serial.print("Time: ");
-         //Serial.println(millis()); // Se puede usar esto para determinar el tiempo que lleva recolectar 256 muestras (frecuencia de muestreo).
+         Serial.print("Time: ");
+         Serial.println(millis()); // Se puede usar esto para determinar el tiempo que lleva recolectar 256 muestras (frecuencia de muestreo).
          for (int idx=0; idx < PULSE_SAMPLES; idx++)
          {
             vReal[idx] = redArray[idx];
@@ -151,29 +151,29 @@ void loop()
          delay(50); // Tiempo para que la Tiva C lea el valor del bpm 
          colorWipe(strip.Color(0, 0, 255), 5); //AZUL probar con 5 o 10
 
-         //Serial.print("BPM: ");
-         //Serial.println(beatsPerMinute);
-         //if (ir < 50000)
-         //Serial.print(" No finger?");
-         //Serial.print("ir:");
-         //Serial.print(ir);
-         //Serial.println();
+         Serial.print("BPM: ");
+         Serial.println(beatsPerMinute);
+         if (ir < 50000)
+         Serial.print(" No finger?");
+         Serial.print("ir:");
+         Serial.print(ir);
+         Serial.println();
       }
   }
 #endif
 
 if(Serial2.available()){
-      request = Serial2.readStringUntil('\n');
+      //request = Serial2.readStringUntil('\n');
       //Serial.print("BPM: ");
-      Serial.println(request);
+      //Serial.println(request);
       //if(request==1){
       //Serial.print("BPM: ");
       //Serial.println(request);
       //if (ir < 50000)
       //Serial2.print(" No finger?");
       //delay(100); // Delay para que la Tiva C tenga tiempo para leer la respuesta
-      clavedos = Serial.parseInt();
-      colorWipe(strip.Color(0, 255, 0), 10); // Green      
+      //clavedos = Serial.parseInt();
+      //colorWipe(strip.Color(0, 255, 0), 10); // Green      
       }
 }
 //*****************************
@@ -188,3 +188,112 @@ if(Serial2.available()){
       }
    }
    //*****************************
+
+
+   //Configuración
+void setup() {
+  SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
+  Serial.begin(115200); //Inicialización de la comunicación serial con el monitor serial
+  Serial2.begin(115200); //Comunicación UART con ESP32
+  SPI.setModule(0); //Implementación del módulo SPIO por la pantalla ili9341
+  
+  Serial.print("Inicializando la tarjeta SD...");
+  if(!SD.begin(CS_PIN)){
+    Serial.println("¡Falló la inicialización de la tarjeta!D:");
+  }
+  Serial.println("Inicialización realizada:D");
+  
+  //Configuración de los SW  
+  pinMode(BSENSE, INPUT_PULLUP); //Configuración de SW1
+  pinMode(BSD, INPUT_PULLUP); //Configuración de SW1
+  pinMode(RED_LED, OUTPUT); //LED de verificación del funcionamiento del BSENSE
+
+  //Interfaz gráfica de la pantalla TFT ili9341
+  Serial.println("Inicio"); 
+  LCD_Init();
+  LCD_Clear(0x00);
+
+  FillRect(0, 0, 320, 240, 0x421b);
+  String text1 = "BPM:";
+  LCD_Print(text1, 128, 116, 2, 0xffff, 0x421b);
+  delay(1000);
+}
+
+//Loop Infinito
+void loop() {
+        for(int x =0; x<320-107; x++){
+    delay(15);   
+    int anim2=(x/10)%3;
+    LCD_Sprite(107, 20, 107, 80, heart, 3, anim2, 0, 0);
+    }
+
+  //Verificación de BSENSE para realizar la medición del sensor
+  if(digitalRead(BSENSE) == LOW && (millis()-lastDebounceTime)>debounceDelay){
+    digitalWrite(RED_LED, HIGH); //Control LED
+    lastDebounceTime = millis();
+    clave=1;
+    Serial2.print(clave); //Activación neopixel via UART2
+    
+  //}
+    if (Serial2.available()){ //Utilizar Serial2 para comunicarse con el ESP32
+    receivedvaluesensor=Serial2.parseInt();
+    Serial.println("BPM:");
+    Serial.println(receivedvaluesensor);
+    
+    if(receivedvaluesensor<35){
+      receivedvaluesensor=35;
+      } else if(receivedvaluesensor>200){
+        receivedvaluesensor=200;
+      }
+
+    //FillRect(120, 140, 2, 0x1105, 0x421b);
+    
+    //Impresión del bpm
+    String BPM=String(receivedvaluesensor); //Impresión en la pantalla TFT ili9341
+
+    //Serial2.print("BPM:");
+    //Serial2.println(BPM);
+    
+    if (receivedvaluesensor >= 35 && receivedvaluesensor <= 99) {
+      // Si el valor está entre 35 y 99, se agrega un espacio en el tercer dígito
+      BPM = String(String(receivedvaluesensor).substring(0, 2) + " " + String(receivedvaluesensor).substring(2));
+      } else if (receivedvaluesensor >= 100 && receivedvaluesensor <= 200) {
+        // Si el valor está entre 100 y 200, se muestran los tres dígitos
+        BPM = String(receivedvaluesensor);
+        }
+    LCD_Print(BPM, 120, 140, 2, 0x1105, 0xF7BD);
+    FillRect(120, 140, 2, 0x1105, 0x421b);
+    Serial2.print("BPM:");
+    Serial2.println(BPM);
+  }
+  }
+    
+    /*for(int x =0; x<320-107; x++){
+    delay(15);   
+    int anim2=(x/10)%3;
+    LCD_Sprite(107, 20, 107, 80, heart, 3, anim2, 0, 0);
+    }
+    }*/
+        
+   //Verificación de BSD para guardar en la SD
+   if(digitalRead(BSD)==LOW && (millis()-lastDebounceTime)>debounceDelay){
+    lastDebounceTime=millis();
+    //if(dataFile){
+      File dataFile=SD.open("datalog.txt", FILE_WRITE); //Apertura del archivo en modo escritura
+      if(dataFile){
+        dataFile.println(receivedvaluesensor);
+        dataFile.close(); //Se cierra el archivo
+        Serial.println("Se ha guardado exitosamente la medición de la temperatura en la tarjeta SD.");
+        Serial.println(receivedvaluesensor);
+        }
+        //Si no fue posible abrir el archivo→ERROR
+        else{
+          Serial.println("Error al abrir el archivo datalog.txt y no se ha guardado la medida de temperatura");
+        }
+        String text2 = "Almacenada en SD";
+        LCD_Print(text2, 20, 190, 2, 0xffff, 0x421b);
+        delay(1000);
+        FillRect(20, 190, 2000, 40, 0x421b);
+        }
+        //delay(20);
+}
