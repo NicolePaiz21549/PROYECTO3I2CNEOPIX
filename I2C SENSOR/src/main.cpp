@@ -131,8 +131,8 @@ void loop()
 
       if (i == 0) // Ejecutar cada PULSE_SAMPLES
       {
-         Serial.print("Time: ");
-         Serial.println(millis()); // Se puede usar esto para determinar el tiempo que lleva recolectar 256 muestras (frecuencia de muestreo).
+         //Serial.print("Time: ");
+         //Serial.println(millis()); // Se puede usar esto para determinar el tiempo que lleva recolectar 256 muestras (frecuencia de muestreo).
          for (int idx=0; idx < PULSE_SAMPLES; idx++)
          {
             vReal[idx] = redArray[idx];
@@ -151,29 +151,29 @@ void loop()
          delay(50); // Tiempo para que la Tiva C lea el valor del bpm 
          colorWipe(strip.Color(0, 0, 255), 5); //AZUL probar con 5 o 10
 
-         Serial.print("BPM: ");
-         Serial.println(beatsPerMinute);
-         if (ir < 50000)
-         Serial.print(" No finger?");
-         Serial.print("ir:");
-         Serial.print(ir);
-         Serial.println();
+         //Serial.print("BPM: ");
+         //Serial.println(beatsPerMinute);
+         //if (ir < 50000)
+         //Serial.print(" No finger?");
+         //Serial.print("ir:");
+         //Serial.print(ir);
+         //Serial.println();
       }
   }
 #endif
 
 if(Serial2.available()){
-      //request = Serial2.readStringUntil('\n');
+      request = Serial2.readStringUntil('\n');
       //Serial.print("BPM: ");
-      //Serial.println(request);
+      Serial.println(request);
       //if(request==1){
       //Serial.print("BPM: ");
       //Serial.println(request);
       //if (ir < 50000)
       //Serial2.print(" No finger?");
       //delay(100); // Delay para que la Tiva C tenga tiempo para leer la respuesta
-      //clavedos = Serial.parseInt();
-      //colorWipe(strip.Color(0, 255, 0), 10); // Green      
+      clavedos = Serial.parseInt();
+      colorWipe(strip.Color(0, 255, 0), 10); // Green      
       }
 }
 //*****************************
